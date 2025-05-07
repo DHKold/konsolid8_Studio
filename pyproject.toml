@@ -18,4 +18,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-studio = "gui.__main__:main"
+studio = "studio.__main__:main" # CLI to run the Konsolid8 Studio GUI
+kaapiler = "kaapiler.__main__:main" # CLI to compile KAA (Konsolid8 Audio Assembly) files
+kapusim = "kapusim.__main__:main" # CLI to simulate KAPU (Konsolid8 Audio Processing Unit) chip
+kppusim = "kppusim.__main__:main" # CLI to simulate KPPU (Konsolid8 Picture Processing Unit) chip
