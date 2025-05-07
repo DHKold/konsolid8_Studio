@@ -1,7 +1,7 @@
 import copy
 
-from .apu_constants import *
 from .apu_channel_state import ApuChannelState
+from .apu_constants import *
 
 
 class ApuChannel:

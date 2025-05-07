@@ -1,5 +1,6 @@
 import math
 
+
 class PhaseSteps:
     OPCODE_SET_PHASE            = 0b0010
 

@@ -1,6 +1,6 @@
-from .apu_constants import *
 from .apu_channel import ApuChannel
 from .apu_channel_phase import ApuChannelPhase
+from .apu_constants import *
 
 
 class Apu:

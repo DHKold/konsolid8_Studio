@@ -17,6 +17,9 @@ python = ">=3.13,<3.14"
 ply = "^3.11"
 pyside6 = "^6.9.0"
 
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+isort = "^6.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -27,3 +30,15 @@ studio = "studio.__main__:main" # CLI to run the Konsolid8 Studio GUI
 kaapiler = "kaapiler.__main__:main" # CLI to compile KAA (Konsolid8 Audio Assembly) files
 kapusim = "kapusim.__main__:main" # CLI to simulate KAPU (Konsolid8 Audio Processing Unit) chip
 kppusim = "kppusim.__main__:main" # CLI to simulate KPPU (Konsolid8 Picture Processing Unit) chip
+
+[tool.black]
+line-length = 1000  # Set a high line length or your preferred value
+
+[tool.isort]
+profile = "black"  # Aligns with Black's formatting style
+line_length = 1000  # Match your desired line length (or Black's configuration)
+multi_line_output = 3  # Vertical hanging indent for imports
+include_trailing_comma = true  # Add trailing commas for multi-line imports
+force_sort_within_sections = true  # Sort imports within sections
+known_third_party = ["pyside6", "ply"]  # Specify third-party libraries
+known_first_party = ["studio", "kaapiler", "kapusim", "kppusim"]  # Specify your local packages
