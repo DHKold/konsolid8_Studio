@@ -5,7 +5,12 @@ description = "Development environment for Konsolid8"
 readme = "README.md"
 authors = ["Cedric van Eetvelde <dhkold@gmail.com>"]
 license = "MIT"
-packages = [{ include = "gui", from = "src" }]
+packages = [
+    { include = "studio", from = "src" },
+    { include = "kaapiler", from = "src" },
+    { include = "kapusim", from = "src" },
+    { include = "kppusim", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.14"
