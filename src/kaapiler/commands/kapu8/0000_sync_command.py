@@ -42,11 +42,15 @@ class SyncCommand(KaaCommand):
 
     def encode(self) -> bytes:
         return bytes([
-            self.OPCODE << 4,                             # aaaaaaaa : aaaaaaaa = opcode
-            (self.waitCount >> 0) & 0xFF                  # cccccccc : waitCount lower byte
-            (self.waitCount >> 8) & 0xFF                  # dddddddd : waitCount higher byte
+            self.OPCODE,                                # aaaaaaaa : aaaaaaaa = opcode
+            (self.waitCount >> 0) & 0xFF,               # cccccccc : waitCount lower byte
+            (self.waitCount >> 8) & 0xFF,               # dddddddd : waitCount higher byte
         ])
     
+    def __str__(self) -> str:
+        return f"SYNC {self.waitCount}"
+    
+    @staticmethod
     def decode(data: bytes) -> 'SyncCommand':
         assert len(data) == 3, "Data length must be 3 bytes for SyncCommand"
         assert data[0] == (SyncCommand.OPCODE), "Invalid opcode for SyncCommand"

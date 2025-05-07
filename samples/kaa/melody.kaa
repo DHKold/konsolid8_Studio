@@ -16,35 +16,17 @@ SetState CHAN0, PHASE13, 45, -255, 1
 SetState CHAN0, PHASE14, 42, +255, 1  # DO+
 SetState CHAN0, PHASE15, 42, -255, 1
 
-# CHAN1 – Triangle Harmony (A4, B4, C5, D5)
-SetState CHAN1, PHASE0, 64, +8, 32
-SetState CHAN1, PHASE1, 64, -8, 32
-SetState CHAN1, PHASE2, 58, +8, 32
-SetState CHAN1, PHASE3, 58, -8, 32
-SetState CHAN1, PHASE4, 52, +8, 32
-SetState CHAN1, PHASE5, 52, -8, 32
-SetState CHAN1, PHASE6, 49, +8, 32
-SetState CHAN1, PHASE7, 49, -8, 32
-
-# CHAN2 – Sawtooth Bass (C3, D3, E3, G3)
-SetState CHAN2, PHASE0, 64, +8, 32
-SetState CHAN2, PHASE1, 1, -255, 1
-SetState CHAN2, PHASE2, 58, +8, 32
-SetState CHAN2, PHASE3, 1, -255, 1
-SetState CHAN2, PHASE4, 52, +8, 32
-SetState CHAN2, PHASE5, 1, -255, 1
-SetState CHAN2, PHASE6, 49, +8, 32
-SetState CHAN2, PHASE7, 1, -255, 1
-
 # Start
 SetEnabled 0b00000111
 
 # Play some notes 10 times
 SetLoop 10, 6
 SetPhaseIds CHAN0, 1, 1, 0 # DO
-Wait 2E11                  # Keep DO for about 92ms
+Sync 2E11                  # Keep DO for about 92ms
 SetPhaseIds CHAN0, 1, 1, 2 # RE
-Wait 1E11                  # Keep DO for about 46ms
+Sync 1E11                  # Keep DO for about 46ms
 SetPhaseIds CHAN0, 1, 1, 8 # SOL
-Wait 1E10                  # Keep DO for about 23ms
-Stop
+Sync 1E10                  # Keep DO for about 23ms
+
+# Stop
+SetEnabled 0x00
