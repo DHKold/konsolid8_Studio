@@ -8,7 +8,9 @@ license = "MIT"
 packages = [{ include = "gui", from = "src" }]
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = ">=3.13,<3.14"
+ply = "^3.11"
+pyside6 = "^6.9.0"
 
 
 [build-system]

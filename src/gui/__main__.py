@@ -1,9 +1,9 @@
-from .gui import Gui
+from .core.application import Application
 
 
 def main():
-    gui = Gui()
-    gui.start()
+    gui = Application()
+    gui.run()
 
 
 __all__ = ["main"]
