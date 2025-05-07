@@ -5,10 +5,15 @@ description = "Development environment for Konsolid8"
 readme = "README.md"
 authors = ["Cedric van Eetvelde <dhkold@gmail.com>"]
 license = "MIT"
+packages = [{ include = "gui", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.13"
 
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+studio = "gui.__main__:main"
