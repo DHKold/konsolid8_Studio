@@ -20,8 +20,8 @@ class JumpCommand(KaaCommand):
     """
 
     OPCODE = 0b0101
-    COMMAND_LENGTH = 2
-    COMMAND_NAME = "JUMP"
+    OPSIZE = 2
+    MNEMONIC = "JUMP"
 
     def __init__(self, address: int = 0):
         assert 0 <= address <= 0xFFF, "address must be between 0 and 4095 (12 bits)"
@@ -34,14 +34,14 @@ class JumpCommand(KaaCommand):
         ])
     
     def __str__(self) -> str:
-        return f"{self.COMMAND_NAME} 0x{self.address:03X}"
+        return f"{self.MNEMONIC} 0x{self.address:03X}"
     
     def __repr__(self) -> str:
         return f"JumpCommand(address={self.address})"
     
     @classmethod
     def decode(cls, data: bytes) -> 'JumpCommand':
-        assert len(data) == cls.COMMAND_LENGTH, f"Data length must be {cls.COMMAND_LENGTH} bytes for {cls.COMMAND_NAME}"
-        assert (data[0] >> 4) == cls.OPCODE, f"Invalid opcode for {cls.COMMAND_NAME}"
+        assert len(data) == cls.OPSIZE, f"Data length must be {cls.OPSIZE} bytes for {cls.MNEMONIC}"
+        assert (data[0] >> 4) == cls.OPCODE, f"Invalid opcode for {cls.MNEMONIC}"
         address = ((data[0] & 0x0F) << 8) | data[1]
         return cls(address)

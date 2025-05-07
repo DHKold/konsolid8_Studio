@@ -43,6 +43,8 @@ class SetPhaseCommand(KaaCommand):
     """
 
     OPCODE = 0b0010  # Opcode for SetPhase command
+    OPSIZE = 5
+    MNEMONIC = "SETPHASE"
 
     def __init__(self, channelId: int = 0, phaseId: int = 0, stepLength: int = 0, stepHeight: int = 0, stepCount: int = 0):
         assert 0 <= channelId <= 0x0F, "channelId must be between 0 and 15 (4 bits)"
@@ -68,15 +70,15 @@ class SetPhaseCommand(KaaCommand):
         ])
     
     def __str__(self) -> str:
-        return f"SETPHASE {KaaCommand.CHANNELS[self.channelId]}, {KaaCommand.PHASES[self.phaseId]}, {self.stepLength}, {self.stepHeight}, {self.stepCount}"
+        return f"{self.MNEMONIC} {KaaCommand.CHANNELS[self.channelId]}, {KaaCommand.PHASES[self.phaseId]}, {self.stepLength}, {self.stepHeight}, {self.stepCount}"
     
     def __repr__(self) -> str:
         return f"SetPhaseCommand(channelId={self.channelId}, phaseId={self.phaseId}, stepLength={self.stepLength}, stepHeight={self.stepHeight}, stepCount={self.stepCount})"
     
-    @staticmethod
-    def decode(data: bytes) -> 'SetPhaseCommand':
-        assert len(data) == 5, "Data length must be 5 bytes for SetPhaseCommand"
-        assert (data[0] & 0xF0) == (SetPhaseCommand.OPCODE << 4), "Invalid opcode for SetPhaseCommand"
+    @classmethod
+    def decode(cls, data: bytes) -> 'SetPhaseCommand':
+        assert len(data) == 5, f"Data length must be {cls.OPSIZE} bytes for {cls.MNEMONIC}"
+        assert (data[0] & 0xF0) == (SetPhaseCommand.OPCODE << 4), f"Invalid opcode for {cls.MNEMONIC}"
         channelId = data[0] & 0x0F
         phaseId = (data[1] >> 4) & 0x0F
         stepWay = (data[1] >> 3) & 0x01

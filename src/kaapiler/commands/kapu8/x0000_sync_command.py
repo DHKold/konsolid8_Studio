@@ -36,6 +36,8 @@ class SyncCommand(KaaCommand):
     """
 
     OPCODE = 0b00001111  # Opcode for SYNC command
+    OPSIZE = 3
+    MNEMONIC = "SYNC"
 
     def __init__(self, waitCount: int = 0):
         self.waitCount = waitCount
@@ -48,11 +50,11 @@ class SyncCommand(KaaCommand):
         ])
     
     def __str__(self) -> str:
-        return f"SYNC {self.waitCount}"
+        return f"{self.MNEMONIC} {self.waitCount}"
     
-    @staticmethod
-    def decode(data: bytes) -> 'SyncCommand':
-        assert len(data) == 3, "Data length must be 3 bytes for SyncCommand"
-        assert data[0] == (SyncCommand.OPCODE), "Invalid opcode for SyncCommand"
+    @classmethod
+    def decode(cls, data: bytes) -> 'SyncCommand':
+        assert len(data) == 3, f"Data length must be {cls.OPSIZE} bytes for {cls.MNEMONIC}"
+        assert data[0] == (SyncCommand.OPCODE), f"Invalid opcode for {cls.MNEMONIC}"
         waitCount = data[1] | (data[2] << 8)
         return SyncCommand(waitCount)

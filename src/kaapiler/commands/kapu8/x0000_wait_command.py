@@ -36,6 +36,9 @@ class WaitCommand(KaaCommand):
     """
 
     OPCODE = 0b0000  # Opcode for WAIT command
+    OPSIZE = 1
+    MNEMONIC = "WAIT"
+    MNEMONIC_NOOP = "NOOP"  # No Operation
 
     def __init__(self, waitCount: int = 0):
         assert 0 <= waitCount <= 0x0E, "waitCount must be between 0 and 14 (4 bits)"
@@ -48,12 +51,12 @@ class WaitCommand(KaaCommand):
     
     def __str__(self) -> str:
         if self.waitCount == 0:
-            return "NOOP"
-        return f"WAIT {self.waitCount}"
+            return self.MNEMONIC_NOOP
+        return f"{self.MNEMONIC} {self.waitCount}"
     
-    @staticmethod
-    def decode(data: bytes) -> 'WaitCommand':
-        assert len(data) == 1, "Data length must be 1 byte for WaitCommand"
-        assert (data[0] & 0xF0) == (WaitCommand.OPCODE << 4), "Invalid opcode for WaitCommand"
+    @classmethod
+    def decode(cls, data: bytes) -> 'WaitCommand':
+        assert len(data) == 1, f"Data length must be {cls.OPSIZE} byte for {cls.MNEMONIC}"
+        assert (data[0] & 0xF0) == (WaitCommand.OPCODE << 4), f"Invalid opcode for {cls.MNEMONIC}"
         assert (data[0] & 0x0F) != 0x0F, "waitCount cannot be 15 (0x0F)"
         return WaitCommand(data[0] & 0x0F)

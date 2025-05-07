@@ -37,8 +37,8 @@ class SetChannelCommand(KaaCommand):
     """
 
     OPCODE = 0b0011  # Opcode for SetChannelCommand
-    COMMAND_LENGTH = 3  # Length of the command in bytes
-    COMMAND_NAME = "SETCHANNEL"  # Command name
+    OPSIZE = 3  # Length of the command in bytes
+    MNEMONIC = "SETCHANNEL"  # Command name
 
     def __init__(self, channelId: int = 0, registerId: int = 0, value: int = 0):
         assert 0 <= channelId <= 0x0F, "channelId must be between 0 and 15 (4 bits)"
@@ -63,8 +63,8 @@ class SetChannelCommand(KaaCommand):
 
     @classmethod
     def decode(cls, data: bytes) -> 'SetChannelCommand':
-        assert len(data) == cls.COMMAND_LENGTH, f"Data length must be {cls.COMMAND_LENGTH} bytes for {cls.COMMAND_NAME}"
-        assert (data[0] >> 4) == cls.OPCODE, f"Invalid opcode for {cls.COMMAND_NAME}"
+        assert len(data) == cls.OPSIZE, f"Data length must be {cls.OPSIZE} bytes for {cls.MNEMONIC}"
+        assert (data[0] >> 4) == cls.OPCODE, f"Invalid opcode for {cls.MNEMONIC}"
         channelId = data[0] & 0x0F
         registerId = (data[1] >> 4) & 0x0F
         assert registerId in KaaCommand.CHANNEL_REGISTERS, "Invalid registerId for SetChannelCommand"

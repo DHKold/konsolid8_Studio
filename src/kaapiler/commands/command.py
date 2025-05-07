@@ -4,8 +4,8 @@ class KaaCommand:
     PHASES = [f"PHASE{i}" for i in range(16)]
     REGISTERS = {
         0: "REG_CHAN_ENABLED",
-        1: "REG_CHAN_LPAN",
-        2: "REG_CHAN_RPAN",
+        1: "REG_CHAN_LEFT",
+        2: "REG_CHAN_RIGHT",
     }
     CHANNEL_REGISTERS = {
         0: "REG_PHASE_IDS",

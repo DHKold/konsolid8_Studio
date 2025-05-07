@@ -40,8 +40,8 @@ class LoopCommand(KaaCommand):
     """
 
     OPCODE = 0b0100
-    COMMAND_LENGTH = 2
-    COMMAND_NAME = "LOOP"
+    OPSIZE = 2
+    MNEMONIC = "LOOP"
 
     def __init__(self, loopCount: int = 0, loopLength: int = 0):
         assert 0 <= loopCount <= 0x3F, "loopCount must be between 0 and 63 (6 bits)"
@@ -56,15 +56,15 @@ class LoopCommand(KaaCommand):
         ])
 
     def __str__(self) -> str:
-        return f"{self.COMMAND_NAME} {self.loopCount}, {self.loopLength}"
+        return f"{self.MNEMONIC} {self.loopCount}, {self.loopLength}"
 
     def __repr__(self) -> str:
         return f"LoopCommand(loopCount={self.loopCount}, loopLength={self.loopLength})"
 
     @classmethod
     def decode(cls, data: bytes) -> 'LoopCommand':
-        assert len(data) == cls.COMMAND_LENGTH, f"Data length must be {cls.COMMAND_LENGTH} bytes for {cls.COMMAND_NAME}"
-        assert (data[0] >> 4) == cls.OPCODE, f"Invalid opcode for {cls.COMMAND_NAME}"
+        assert len(data) == cls.OPSIZE, f"Data length must be {cls.OPSIZE} bytes for {cls.MNEMONIC}"
+        assert (data[0] >> 4) == cls.OPCODE, f"Invalid opcode for {cls.MNEMONIC}"
         loopCount = ((data[0] & 0x0F) << 2) | ((data[1] >> 6) & 0x03)
         loopLength = data[1] & 0x3F
         return cls(loopCount, loopLength)
