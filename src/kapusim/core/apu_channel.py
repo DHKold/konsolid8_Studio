@@ -19,12 +19,8 @@ class ApuChannel:
         # End of the current step: Start the next
         self.state.phaseCountdown -= 1
         if self.state.phaseCountdown <= 0:
-            self.state.amplitude += (
-                self.state.phaseActive.stepHeight * self.state.phaseActive.stepWay
-            )
-            self.state.amplitude = min(
-                max(self.state.amplitude, APU_AMPLITUDE_MIN), APU_AMPLITUDE_MAX
-            )
+            self.state.amplitude += self.state.phaseActive.stepHeight * self.state.phaseActive.stepWay
+            self.state.amplitude = min(max(self.state.amplitude, APU_AMPLITUDE_MIN), APU_AMPLITUDE_MAX)
             self.state.phaseActive.stepCount -= 1
             self.state.phaseCountdown = self.state.phaseActive.stepLength
 
@@ -44,7 +40,7 @@ class ApuChannel:
     def setPhaseActiveId(self, id: int):
         self.state.phaseActiveId = id
         self.state.phaseActive = copy.deepcopy(
-            self.state.phases[self.state.phaseActiveId]
+            self.state.phases[(self.state.phaseActiveId + self.state.phaseIdShift) % 16]
         )
         self.state.phaseCountdown = self.state.phaseActive.stepLength
 

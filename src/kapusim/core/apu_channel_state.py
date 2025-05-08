@@ -6,10 +6,11 @@ class ApuChannelState:
         self.enabled = 0
         self.left = 0
         self.right = 0
-        self.phases = [None] * 16
+        self.phases = [ApuChannelPhase(255, 0, 255, 0)] * 16
         self.phaseMaxId = 0
+        self.phaseIdShift = 0
         self.phaseActiveId = 0
-        self.phaseActive: ApuChannelPhase = None
+        self.phaseActive: ApuChannelPhase = self.phases[0]
         self.phaseCountdown = 0
         self.amplitude = 0
 

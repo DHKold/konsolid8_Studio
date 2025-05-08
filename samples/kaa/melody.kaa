@@ -1,32 +1,32 @@
 # Melody phases (CHAN0)
-SetState CHAN0, PHASE0, 84, +255, 1   # DO
-SetState CHAN0, PHASE1, 84, -255, 1
-SetState CHAN0, PHASE2, 75, +255, 1   # RE
-SetState CHAN0, PHASE3, 75, -255, 1
-SetState CHAN0, PHASE4, 66, +255, 1   # MI
-SetState CHAN0, PHASE5, 66, -255, 1
-SetState CHAN0, PHASE6, 63, +255, 1   # FA
-SetState CHAN0, PHASE7, 63, -255, 1
-SetState CHAN0, PHASE8, 56, +255, 1   # SOL
-SetState CHAN0, PHASE9, 56, -255, 1
-SetState CHAN0, PHASE10, 50, +255, 1  # LA
-SetState CHAN0, PHASE11, 50, -255, 1
-SetState CHAN0, PHASE12, 45, +255, 1  # SI
-SetState CHAN0, PHASE13, 45, -255, 1
-SetState CHAN0, PHASE14, 42, +255, 1  # DO+
-SetState CHAN0, PHASE15, 42, -255, 1
+SETPHASE CHAN0, PHASE0, 84, +255, 1   # DO
+SetPhase CHAN0, PHASE1, 84, -255, 1
+SetPhase CHAN0, PHASE2, 75, +255, 1   # RE
+SetPhase CHAN0, PHASE3, 75, -255, 1
+SetPhase CHAN0, PHASE4, 66, +255, 1   # MI
+SetPhase CHAN0, PHASE5, 66, -255, 1
+SetPhase CHAN0, PHASE6, 63, +255, 1   # FA
+SetPhase CHAN0, PHASE7, 63, -255, 1
+SetPhase CHAN0, PHASE8, 56, +255, 1   # SOL
+SetPhase CHAN0, PHASE9, 56, -255, 1
+SetPhase CHAN0, PHASE10, 50, +255, 1  # LA
+SetPhase CHAN0, PHASE11, 50, -255, 1
+SetPhase CHAN0, PHASE12, 45, +255, 1  # SI
+SetPhase CHAN0, PHASE13, 45, -255, 1
+SetPhase CHAN0, PHASE14, 42, +255, 1  # DO+
+SetPhase CHAN0, PHASE15, 42, -255, 1
 
 # Start
-SetEnabled 0b00000111
+SET REG_CHAN_ENABLED, 0b00000001
 
 # Play some notes 10 times
-SetLoop 10, 6
-SetPhaseIds CHAN0, 1, 1, 0 # DO
-Sync 2E11                  # Keep DO for about 92ms
-SetPhaseIds CHAN0, 1, 1, 2 # RE
-Sync 1E11                  # Keep DO for about 46ms
-SetPhaseIds CHAN0, 1, 1, 8 # SOL
-Sync 1E10                  # Keep DO for about 23ms
+Loop 10, 6
+SetChannel CHAN0, REG_PHASE_IDS, 0x110  # DO
+Sync 1000                               # Keep DO for about ?
+SetChannel CHAN0, REG_PHASE_IDS, 0x112  # DO
+Sync 1000                               # Keep DO for about ?
+SetChannel CHAN0, REG_PHASE_IDS, 0x118  # DO
+Sync 1000                               # Keep DO for about ?
 
 # Stop
-SetEnabled 0x00
+SET REG_CHAN_ENABLED, 0x00

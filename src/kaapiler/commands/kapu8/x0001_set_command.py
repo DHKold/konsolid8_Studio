@@ -5,8 +5,8 @@ class SetCommand(KaaCommand):
     """Set command.
     
     # Opcode (2B):
-    - 0001aaaa : opcode (4b), registerId (4b)
-    - aaaaaaaa : value (8b)
+    - aaaabbbb : opcode (4b), registerId (4b)
+    - cccccccc : value (8b)
 
     # Description:
     Set the value of a specific public register in the APU.
@@ -41,7 +41,7 @@ class SetCommand(KaaCommand):
     def encode(self) -> bytes:
         return bytes([
             (self.OPCODE << 4) | self.registerId,       # aaaabbbb : opcode, registerId
-            self.value & 0xFF,                          # bbbbbbbb : value
+            self.value & 0xFF,                          # cccccccc : value
         ])
     
     def __str__(self) -> str:

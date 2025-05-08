@@ -1,3 +1,6 @@
+from ..command import KaaCommand
+
+
 class JumpCommand(KaaCommand):
     """Jump command.
 
