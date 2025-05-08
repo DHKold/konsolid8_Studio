@@ -1,12 +1,13 @@
+import logging
 from .apu_channel import ApuChannel
 from .apu_channel_phase import ApuChannelPhase
 from .apu_constants import *
-
 
 class Apu:
     SAMPLING_RATIO = 16
 
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self.aip = 0
         self.eip = 0
         self.samplingCounter = 0
@@ -62,24 +63,24 @@ class Apu:
             case 0b0111:
                 self.exec_load(data)
             case _:
-                print(f"Unknown command {data[aip]:08b}, panic mode")
+                self.logger.error(f"Unknown command {data[self.aip]:08b}, panic mode")
                 raise Exception("Unknown command")
         
         # Ensure AIP is within bounds
         if self.aip >= len(data):
-            print(f"Command pointer out of bounds @{self.aip:03x}, resetting to 0")
+            self.logger.warning(f"Command pointer out of bounds @{self.aip:03x}, resetting to 0")
             self.aip = 0
 
     def exec_wait(self, data: bytes):
         waitCycles = data[self.aip] & 0x0F
-        print(f"Wait {waitCycles} cycles")
+        self.logger.info(f"Wait {waitCycles} cycles")
         self.noopCounter = waitCycles
         self.noopSynced = False
         self.aip += 1
 
     def exec_sync(self, data: bytes):
         syncCycles = (data[self.aip+2]<<8) | data[self.aip+1]
-        print(f"Sync {syncCycles} sampling cycles")
+        self.logger.info(f"Sync {syncCycles} sampling cycles")
         self.noopCounter = syncCycles
         self.noopSynced = True
         self.aip += 3
@@ -87,7 +88,7 @@ class Apu:
     def exec_set(self, data: bytes):
         registerId = data[self.aip] & 0x0F
         value = data[self.aip + 1]
-        print(f"Set register {registerId} to {value}")
+        self.logger.info(f"Set register {registerId} to {value}")
         match registerId:
             case 0b0000: # REG_CHAN_ENABLED
                 self.channels[0].state.enabled = (value >> 0) & 1
@@ -117,14 +118,14 @@ class Apu:
                 self.channels[6].state.right = (value >> 6) & 1
                 self.channels[7].state.right = (value >> 7) & 1
             case _:
-                print("Wrong registerId, ignored")
+                self.logger.warning("Wrong registerId, ignored")
         self.aip += 2
     
     def exec_setChannel(self, data: bytes):
         channelId = data[self.aip] & 0x0F
         registerId = (data[self.aip + 1] >> 4) & 0x0F
         value = (data[self.aip + 1] & 0x0F) << 8 | data[self.aip + 2]
-        print(f"SetChannel register {registerId} of Channel #{channelId} to {value}")
+        self.logger.info(f"SetChannel register {registerId} of Channel #{channelId} to {value}")
         match registerId:
             case 0b0000: # REG_PHASE_IDS
                 activeId = (value & 0xF00) >> 8
@@ -133,7 +134,7 @@ class Apu:
                 self.channels[channelId].state.phaseMaxId = maxId
                 self.channels[channelId].state.phaseIdShift = phaseIdShift
                 self.channels[channelId].setPhaseActiveId(activeId)
-                print(f"SetPhaseIds of Channel #{channelId} to {activeId}, {maxId}, {phaseIdShift}")
+                self.logger.info(f"SetPhaseIds of Channel #{channelId} to {activeId}, {maxId}, {phaseIdShift}")
         self.aip += 3
 
     def exec_setPhase(self, data: bytes):
@@ -145,7 +146,7 @@ class Apu:
             data[self.aip + 4],
             -1 if (data[self.aip + 1] & 0b1000) == 0 else 1,
         )
-        print(f"SetPhase {phaseId} of Channel #{channelId} to", newPhase)
+        self.logger.info(f"SetPhase {phaseId} of Channel #{channelId} to {newPhase}")
         self.channels[channelId].state.phases[phaseId] = newPhase
         self.aip += 5
 
@@ -154,22 +155,24 @@ class Apu:
         self.loopCountdown = ((data[self.aip] & 0b1111) << 2) + (data[self.aip + 1] >> 6)
         self.loopLength = data[self.aip+1] & 0b111111
         self.loopCommandCountdown = self.loopLength
-        print(f"Loop at @{self.loopAddress:03x} after {self.loopLength} commands, {self.loopCountdown} times")
+        self.logger.info(f"Loop at @{self.loopAddress:03x} after {self.loopLength} commands, {self.loopCountdown} times")
         self.aip += 2
 
     def exec_jump(self, data: bytes):
         jumpAddress = ((data[self.aip] & 0b1111) << 8) + data[self.aip + 1]
-        print(f"Jump to @{jumpAddress:03x}")
+        self.logger.info(f"Jump to @{jumpAddress:03x}")
         self.aip = jumpAddress
 
     def exec_save(self, data: bytes):
         channelId = data[self.aip] & 0x0F
         self.channels[channelId].save_state()
+        self.logger.info(f"Save state of Channel #{channelId}")
         self.aip += 1
 
     def exec_load(self, data: bytes):
         channelId = data[self.aip] & 0x0F
         self.channels[channelId].load_state()
+        self.logger.info(f"Load state of Channel #{channelId}")
         self.aip += 1
 
     def combine_samples(self, samples: list[int]):
