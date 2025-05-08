@@ -78,7 +78,7 @@ class Apu:
         self.aip += 1
 
     def exec_sync(self, data: bytes):
-        syncCycles = data[self.aip] & 0x0F
+        syncCycles = (data[self.aip+2]<<8) | data[self.aip+1]
         print(f"Sync {syncCycles} sampling cycles")
         self.noopCounter = syncCycles
         self.noopSynced = True
@@ -127,12 +127,13 @@ class Apu:
         print(f"SetChannel register {registerId} of Channel #{channelId} to {value}")
         match registerId:
             case 0b0000: # REG_PHASE_IDS
-                activeId = value >> 8
-                maxId = value & 0xF0
-                phaseIdShift = value & 0x0F
+                activeId = (value & 0xF00) >> 8
+                maxId = (value & 0x0F0) >> 4
+                phaseIdShift = value & 0x00F
                 self.channels[channelId].state.phaseMaxId = maxId
                 self.channels[channelId].state.phaseIdShift = phaseIdShift
                 self.channels[channelId].setPhaseActiveId(activeId)
+                print(f"SetPhaseIds of Channel #{channelId} to {activeId}, {maxId}, {phaseIdShift}")
         self.aip += 3
 
     def exec_setPhase(self, data: bytes):
@@ -192,7 +193,8 @@ class Apu:
             self.executeCommand(data)
             # One sample every SAMPLING_RATIO Cycle
             if self.samplingCounter == 0:
-                samples.append(self.combine_samples([c.sample() for c in self.channels]))
+                newSample = self.combine_samples([c.sample() for c in self.channels])
+                samples.append(newSample)
                 self.samplingCounter = self.SAMPLING_RATIO
             self.samplingCounter -= 1
             # Next cycle

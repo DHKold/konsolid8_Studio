@@ -39,9 +39,8 @@ class ApuChannel:
 
     def setPhaseActiveId(self, id: int):
         self.state.phaseActiveId = id
-        self.state.phaseActive = copy.deepcopy(
-            self.state.phases[(self.state.phaseActiveId + self.state.phaseIdShift) % 16]
-        )
+        actualId = (self.state.phaseActiveId + self.state.phaseIdShift) % 16
+        self.state.phaseActive = copy.deepcopy(self.state.phases[actualId])
         self.state.phaseCountdown = self.state.phaseActive.stepLength
 
     def save_state(self):

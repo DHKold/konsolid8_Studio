@@ -20,13 +20,23 @@ SetPhase CHAN0, PHASE15, 42, -255, 1
 SET REG_CHAN_ENABLED, 0b00000001
 
 # Play some notes 10 times
-Loop 10, 6
+Loop 63, 16
 SetChannel CHAN0, REG_PHASE_IDS, 0x110  # DO
-Sync 1000                               # Keep DO for about ?
-SetChannel CHAN0, REG_PHASE_IDS, 0x112  # DO
-Sync 1000                               # Keep DO for about ?
-SetChannel CHAN0, REG_PHASE_IDS, 0x118  # DO
-Sync 1000                               # Keep DO for about ?
+Sync 5000                               # Keep for about 113ms
+SetChannel CHAN0, REG_PHASE_IDS, 0x112  # RE
+Sync 5000                               # Keep for about 113ms
+SetChannel CHAN0, REG_PHASE_IDS, 0x114  # MI
+Sync 5000                               # Keep for about 113ms
+SetChannel CHAN0, REG_PHASE_IDS, 0x116  # FA
+Sync 5000                               # Keep for about 113ms
+SetChannel CHAN0, REG_PHASE_IDS, 0x118  # SOL
+Sync 5000                               # Keep  for about 113ms
+SetChannel CHAN0, REG_PHASE_IDS, 0x11A  # LA
+Sync 5000                               # Keep  for about 113ms
+SetChannel CHAN0, REG_PHASE_IDS, 0x11C  # SI
+Sync 5000                               # Keep  for about 113ms
+SetChannel CHAN0, REG_PHASE_IDS, 0x11E  # DO
+Sync 5000                               # Keep  for about 113ms
 
 # Stop
 SET REG_CHAN_ENABLED, 0x00
