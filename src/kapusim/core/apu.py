@@ -4,9 +4,8 @@ from .apu_channel_phase import ApuChannelPhase
 from .apu_constants import *
 
 class Apu:
-    SAMPLING_RATIO = 16
-
-    def __init__(self):
+    def __init__(self, apuRatio=16):
+        self.SAMPLING_RATIO = apuRatio
         self.logger = logging.getLogger(__name__)
         self.aip = 0
         self.eip = 0

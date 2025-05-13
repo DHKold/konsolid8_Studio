@@ -24,11 +24,12 @@ class Application:
     def parse_arguments(self, args: list[str]) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="KAPU Simulator CLI Application")
         parser.add_argument("input_file", type=str, help="Path to the binary input file")
-        parser.add_argument("-c", "--cycles", type=int, default=44100*Apu.SAMPLING_RATIO, help="Number of APU cycles to run (default: 44100x16 = 1s)")
-        parser.add_argument("-f", "--output_format", type=str, choices=["wav", "sound", "plot"], default="sound", help="Output format (WAV file, SOUND playback, or PLOT waveform)")
-        parser.add_argument("-o", "--output_file", type=str, default=None, help="Output filename (if WAV format is used)")
-        parser.add_argument("-r", "--sample_rate", type=int, default=44100, help="Sample rate for audio (default: 44100)")
-        parser.add_argument("-d", "--debug_level", type=str, choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="ERROR", help="Debugging level")
+        parser.add_argument("-c", "--cycles", type=int, default=44100*16, help="Number of APU cycles to run (default: 44100x16 = 1s)")
+        parser.add_argument("-f", "--output-format", type=str, choices=["wav", "sound", "plot"], default="sound", help="Output format (WAV file, SOUND playback, or PLOT waveform)")
+        parser.add_argument("-o", "--output-file", type=str, default=None, help="Output filename (if WAV format is used)")
+        parser.add_argument("-r", "--sample-rate", type=int, default=44100, help="Sample rate for audio (default: 44100)")
+        parser.add_argument("-x", "--apu-ratio", type=int, default=16, help="Number of APU cycles per Sample (default: 16)")
+        parser.add_argument("-d", "--debug-level", type=str, choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="ERROR", help="Debugging level")
         parsed_args = parser.parse_args(args)
         if self.logger:
             self.logger.debug(f"Parsed arguments: {parsed_args}")
@@ -42,8 +43,8 @@ class Application:
         with input_path.open("rb") as f:
             return f.read()
 
-    def run_apu(self, data: bytes, cycles: int) -> list[tuple[int, int]]:
-        apu = Apu()
+    def run_apu(self, data: bytes, cycles: int, ratio: int) -> list[tuple[int, int]]:
+        apu = Apu(apuRatio=ratio)
         return apu.run(data, cycles)
 
     def write_wav_file(self, samples: list[tuple[int, int]], output_file: str, sample_rate: int):
@@ -86,7 +87,7 @@ class Application:
             arguments = self.parse_arguments(args)
             self.configure_logger(arguments.debug_level)
             input_data = self.read_input_file(arguments.input_file)
-            samples = self.run_apu(input_data, arguments.cycles)
+            samples = self.run_apu(input_data, arguments.cycles, arguments.apu_ratio)
 
             if arguments.output_format == self.OUTPUT_FORMAT_WAV:
                 if not arguments.output_file:
