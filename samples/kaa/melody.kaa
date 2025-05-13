@@ -1,50 +1,76 @@
 # Melody phases (CHAN0)
-SetState CHAN0, PHASE0, 84, +255, 1   # DO
-SetState CHAN0, PHASE1, 84, -255, 1
-SetState CHAN0, PHASE2, 75, +255, 1   # RE
-SetState CHAN0, PHASE3, 75, -255, 1
-SetState CHAN0, PHASE4, 66, +255, 1   # MI
-SetState CHAN0, PHASE5, 66, -255, 1
-SetState CHAN0, PHASE6, 63, +255, 1   # FA
-SetState CHAN0, PHASE7, 63, -255, 1
-SetState CHAN0, PHASE8, 56, +255, 1   # SOL
-SetState CHAN0, PHASE9, 56, -255, 1
-SetState CHAN0, PHASE10, 50, +255, 1  # LA
-SetState CHAN0, PHASE11, 50, -255, 1
-SetState CHAN0, PHASE12, 45, +255, 1  # SI
-SetState CHAN0, PHASE13, 45, -255, 1
-SetState CHAN0, PHASE14, 42, +255, 1  # DO+
-SetState CHAN0, PHASE15, 42, -255, 1
-
-# CHAN1 – Triangle Harmony (A4, B4, C5, D5)
-SetState CHAN1, PHASE0, 64, +8, 32
-SetState CHAN1, PHASE1, 64, -8, 32
-SetState CHAN1, PHASE2, 58, +8, 32
-SetState CHAN1, PHASE3, 58, -8, 32
-SetState CHAN1, PHASE4, 52, +8, 32
-SetState CHAN1, PHASE5, 52, -8, 32
-SetState CHAN1, PHASE6, 49, +8, 32
-SetState CHAN1, PHASE7, 49, -8, 32
-
-# CHAN2 – Sawtooth Bass (C3, D3, E3, G3)
-SetState CHAN2, PHASE0, 64, +8, 32
-SetState CHAN2, PHASE1, 1, -255, 1
-SetState CHAN2, PHASE2, 58, +8, 32
-SetState CHAN2, PHASE3, 1, -255, 1
-SetState CHAN2, PHASE4, 52, +8, 32
-SetState CHAN2, PHASE5, 1, -255, 1
-SetState CHAN2, PHASE6, 49, +8, 32
-SetState CHAN2, PHASE7, 1, -255, 1
+SetPhase CHAN0, PHASE0, 66, +255, 1     # E4 50% -> 0
+SetPhase CHAN0, PHASE1, 66, -255, 1
+SetPhase CHAN0, PHASE2, 63, +255, 1     # F4 50% -> 2
+SetPhase CHAN0, PHASE3, 63, -255, 1
+SetPhase CHAN0, PHASE4, 56, +255, 1     # G4 50% -> 4
+SetPhase CHAN0, PHASE5, 56, -255, 1
+SetPhase CHAN0, PHASE6, 50, +255, 1     # A4 50% -> 6
+SetPhase CHAN0, PHASE7, 50, -255, 1
+SetPhase CHAN0, PHASE8, 44, +255, 1     # B4 50% -> 8
+SetPhase CHAN0, PHASE9, 44, -255, 1
+SetPhase CHAN0, PHASE10, 42, +255, 1    # C5 50% -> A
+SetPhase CHAN0, PHASE11, 42, -255, 1
+SetPhase CHAN0, PHASE12, 37, +255, 1    # D5 50% -> C
+SetPhase CHAN0, PHASE13, 37, -255, 1
+SetPhase CHAN0, PHASE14, 33, +255, 1    # E5 50% -> E
+SetPhase CHAN0, PHASE15, 33, -255, 1
 
 # Start
-SetEnabled 0b00000111
+SET REG_CHAN_ENABLED, 0b00000001
+
 
 # Play some notes 10 times
-SetLoop 10, 6
-SetPhaseIds CHAN0, 1, 1, 0 # DO
-Wait 2E11                  # Keep DO for about 92ms
-SetPhaseIds CHAN0, 1, 1, 2 # RE
-Wait 1E11                  # Keep DO for about 46ms
-SetPhaseIds CHAN0, 1, 1, 8 # SOL
-Wait 1E10                  # Keep DO for about 23ms
-Stop
+#Loop 63, 40
+
+# 2E4, 1B4, 1C5, 2D5, 1C5,    1B4, 2A4, 1A4, 1C5, 2E5
+
+SetChannel CHAN0, REG_PHASE_IDS, 0x11E  # E5
+Sync 22050                              # Keep for 2
+SetChannel CHAN0, REG_PHASE_IDS, 0x118  # B4
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x11A  # C5
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x11C  # D5
+Sync 22050                              # Keep for 2
+SetChannel CHAN0, REG_PHASE_IDS, 0x11A  # C5
+Sync 11025                              # Keep for 1
+
+SetChannel CHAN0, REG_PHASE_IDS, 0x118  # B4
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x116  # A4
+Sync 22050                              # Keep for 2
+SetChannel CHAN0, REG_PHASE_IDS, 0x116  # A4
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x11A  # C5
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x11E  # E5
+Sync 22050                              # Keep for 2
+
+# 1D5, 1C5, 2B4, 1B4, 1C5,    2D5, 1E5, 1C5, 2A4, 1A4
+
+SetChannel CHAN0, REG_PHASE_IDS, 0x11C  # D5
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x11A  # C5
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x118  # B4
+Sync 22050                              # Keep for 2
+SetChannel CHAN0, REG_PHASE_IDS, 0x118  # B4
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x11A  # C5
+Sync 11025                              # Keep for 1
+
+SetChannel CHAN0, REG_PHASE_IDS, 0x11C  # D5
+Sync 22050                              # Keep for 2
+SetChannel CHAN0, REG_PHASE_IDS, 0x11E  # E5
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x11A  # C5
+Sync 11025                              # Keep for 1
+SetChannel CHAN0, REG_PHASE_IDS, 0x116  # A4
+Sync 22050                              # Keep for 2
+SetChannel CHAN0, REG_PHASE_IDS, 0x116  # A4
+Sync 11025                              # Keep for 1
+
+# Stop
+SET REG_CHAN_ENABLED, 0x00
+Sync 0xFFFF
