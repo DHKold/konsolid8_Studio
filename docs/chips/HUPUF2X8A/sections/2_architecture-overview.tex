@@ -1,0 +1,95 @@
+% 2. Architecture Overview
+\section{Architecture Overview}
+
+\subsection{High-Level Description}
+The HUPUF2X8A Audio Processing Unit (APU) is a compact and versatile chip designed for generating high-quality stereo audio in embedded systems. The architecture leverages a modular design to accommodate a wide range of audio synthesis requirements while maintaining low power consumption and efficient processing.
+
+The APU supports up to 8 audio channels: 
+\begin{itemize}
+    \item 6 Segmented Channels (2 High-Quality, 2 Medium-Quality, 2 Low-Quality)
+    \item 2 Sampled Channels (configurable for raw audio playback and modulation)
+\end{itemize}
+
+The core of the APU is a pipeline-based audio engine that synthesizes sound by processing discrete segments or samples through specialized channels. Each channel can be independently configured for waveform generation, modulation, and mixing, allowing for complex audio patterns and dynamic effects.
+
+The APU directly outputs analog signals through two dedicated stereo pins (L and R), providing high-quality sound at 8-bit resolution per channel.
+
+\subsection{Block Diagram}
+The following diagram provides an overview of the internal architecture of the HUPUF2X8A APU:
+
+\begin{figure}[h!]
+    \centering
+    \begin{circuitikz}[scale=0.8, transform shape]
+
+        % Global Registers and Interface
+        \node[draw, rectangle, minimum width=3.5cm, minimum height=1cm, fill=gray!20] (global) at (0, 4) {Global Registers};
+        \node[draw, rectangle, minimum width=3cm, minimum height=1cm] (reg_if) at (-3, 4) {Register Interface};
+        \node[draw, rectangle, minimum width=2.5cm, minimum height=1cm, fill=gray!20] (selector) at (-3, 2) {Channel/Segment Selector};
+
+        % Register Interface Connections
+        \draw[->] (reg_if) -- node[above]{D0-D7, RAE, RRW} (global);
+        \draw[->] (selector) -- (global);
+
+        % Clock and Reset
+        \node[draw, circle, minimum size=0.8cm] (clk) at (-6, 6) {CLK};
+        \node[draw, circle, minimum size=0.8cm] (rst) at (-6, 4) {RST};
+        \draw[->] (clk) -- (reg_if);
+        \draw[->] (rst) -- (reg_if);
+
+        % Clock Divider
+        \node[draw, rectangle, minimum width=3cm, minimum height=1cm, fill=gray!30] (divider) at (-6, 2) {Clock Divider};
+        \draw[->] (clk) -- (divider);
+
+        % Channel Groups
+        \node[draw, rectangle, minimum width=4cm, minimum height=1.5cm, fill=gray!20] (segmented) at (4, 5) {Segmented Channels (6)};
+        \node[draw, rectangle, minimum width=4cm, minimum height=1.5cm, fill=gray!20] (sampled) at (4, 2) {Sampled Channels (2)};
+
+        % Channel connections
+        \draw[->] (global) -- (segmented);
+        \draw[->] (global) -- (sampled);
+
+        % Sampling and Mixing Circuit
+        \node[draw, rectangle, minimum width=4.5cm, minimum height=1.5cm, fill=gray!40] (mixer) at (9, 4) {Sampling \& Mixing Circuit};
+        \draw[->] (segmented) -- node[above]{Amplitude} (mixer);
+        \draw[->] (sampled) -- node[below]{Amplitude} (mixer);
+
+        % DAC and Output
+        \node[draw, rectangle, minimum width=3cm, minimum height=1cm, fill=gray!20] (dac) at (12, 4) {2x8b DAC};
+        \draw[->] (mixer) -- node[above]{L/R Digital} (dac);
+        \draw[->] (dac) -- ++(1.5, 0) node[right]{L/R Analog};
+
+        % VCC and GND
+        \node[draw, circle, minimum size=0.8cm] (vcc) at (-6, 8) {Vcc};
+        \node[draw, circle, minimum size=0.8cm] (gnd) at (-6, 0) {GND};
+        \draw[->] (vcc) -- (reg_if);
+        \draw[->] (gnd) -- (reg_if);
+        \draw[->] (vcc) -- (global);
+        \draw[->] (gnd) -- (global);
+
+        % Channel/Segment Mapping
+        \draw[->] (global) -- node[above]{Channel Selection} (selector);
+
+    \end{circuitikz}
+    \caption{Block Diagram of HUPUF2X8A - APU}
+\end{figure}
+
+
+\subsection{Signal Flow}
+The APU operates through a sequence of audio processing steps as follows:
+\begin{enumerate}
+    \item \textbf{Clock and Reset Management:} The system clock synchronizes all internal operations, while the reset line initializes the APU state.
+    \item \textbf{Channel Configuration:} Each of the 8 channels can be independently configured through dedicated registers. Segmented channels generate complex waveforms, while sampled channels handle raw audio data.
+    \item \textbf{Waveform Generation:} The segmented channels utilize a series of amplitude steps to create dynamic audio patterns. Sampled channels output audio directly from stored data.
+    \item \textbf{Mixing and Output:} The outputs of all active channels are summed and balanced by the mixer, which can independently control the volume and stereo positioning of each channel.
+    \item \textbf{Digital-to-Analog Conversion:} The mixed digital audio signals are converted to analog output via a dual-channel DAC, feeding the left and right audio lines.
+\end{enumerate}
+
+\subsection{Audio Processing Pipeline}
+The audio processing pipeline is designed to handle multiple channels concurrently, optimizing resource usage while maintaining audio fidelity. The pipeline consists of:
+\begin{itemize}
+    \item \textbf{Waveform Generation Stage:} Produces digital audio signals based on the selected waveform configuration.
+    \item \textbf{Modulation and Mixing Stage:} Combines audio signals with volume scaling and stereo distribution.
+    \item \textbf{Digital-to-Analog Conversion Stage:} Outputs the final mixed signal through the DAC.
+\end{itemize}
+
+The modular nature of the pipeline allows for fine-tuned control of each channel, including volume adjustment, waveform modulation, and stereo balancing, making it suitable for a wide range of audio applications.

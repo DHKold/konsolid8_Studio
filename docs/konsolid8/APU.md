@@ -1,12 +1,11 @@
 # APU (Audio Processing Unit)
 
-Model: HUPUF2X8A-DIP20 (Hutech PulseForge Stereo 2x8b Analog)
+This document describes the HUPUF2X8A (Hutech PulseForge Stereo 2x8b Analog), an Audio Synthesis Chip.
 
-Company: Hutech
-Series: PulseForge
-Model: HUPUF2X8A-DIP20
-
-Note: Custom design and production (Prototyping using a small FPGA)
+- Company: Hutech
+- Series: PulseForge
+- Model: HUPUF2X8A
+- Release: 01-01-1987
 
 ## Overview
 
@@ -17,6 +16,10 @@ There are two types of channels: segmented and sampled.
 ### Device Variants
 
 The chip is currenlty only available with 8 Channels: 6 Segmented Channels (Quality: 2xHigh, 2xMediumA, 2xLow) and 2 Sampled Channels.
+
+It comes in the following references:
+
+- HUPUF2X8A-DIP20
 
 ### Packagind
 
