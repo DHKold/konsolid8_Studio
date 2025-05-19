@@ -5,17 +5,20 @@
 \usepackage{xcolor}
 \usepackage{titlesec}
 \usepackage{tabularx}
+\usepackage{float}
+
 \title{HUPUF2X8A - APU (Audio Processing Unit) Technical Documentation}
 \author{Hutech - PulseForge Series}
 \date{\today}
 
 % Custom command for section title pages
-\definecolor{titlepagecolor}{RGB}{0,65,120}
+\definecolor{titlepagecolor}{RGB}{40,110,180}
+\definecolor{sectionpagecolor}{RGB}{0,65,120}
 
 \newcommand\sectionbreak{\clearpage}
 \titleformat{\section}[display]
   {%
-    \pagecolor{titlepagecolor}\thispagestyle{empty}%
+    \pagecolor{sectionpagecolor}\thispagestyle{empty}%
     \normalfont\Huge\bfseries\color{white}\filcenter\titlerule[2pt]\vskip5pt%
   }
   {\thesection}
@@ -45,59 +48,26 @@
 \newpage
 
 % 4. Register Map and Configuration
-\section{Register Map and Configuration}
-\subsection{Global Registers}
-Listing and description of global control registers.
-\subsection{Per-Channel Registers}
-Detailed mapping of registers for each channel type.
-\subsection{Access Mechanism}
-How to interact with registers.
-\subsection{Programming Examples}
-Example configurations and setups.
+\input{sections/4_register-map.tex}
+\newpage
 
 % 5. Clock and Timing
-\section{Clock and Timing}
-\subsection{Master Clock}
-Description of clock source and synchronization.
-\subsection{Sampling Rate}
-Relation between clock speed and audio output.
-\subsection{Latency and Constraints}
-Expected processing delays.
+\input{sections/5_clock-and-timing.tex}
+\newpage
 
 % 6. Performance Characteristics
-\section{Performance Characteristics}
-\subsection{Channel Capacity}
-Max simultaneous channels and tone generation.
-\subsection{Latency}
-Measured delays from input to output.
-\subsection{Power Consumption}
-Energy efficiency and expected consumption.
+\input{sections/6_performance-characteristics.tex}
+\newpage
 
 % 7. Integration and Usage
-\section{Integration and Usage}
-\subsection{Wiring Diagrams}
-Example wiring for headphones and RCA output.
-\subsection{Usage Scenarios}
-Step-by-step setup for basic sound generation.
-\subsection{Programming Interface}
-Methods to program and interact with the APU.
+\input{sections/7_integration-and-usage.tex}
+\newpage
 
 % 8. Debugging and Testing
-\section{Debugging and Testing}
-\subsection{Built-in Diagnostics}
-Test modes and validation procedures.
-\subsection{Signal Validation}
-Test signals and output expectations.
-\subsection{Troubleshooting}
-Common issues and their resolutions.
+\input{sections/8_debugging-and-testing.tex}
+\newpage
 
 % 9. Appendices
-\appendix
-\section{Electrical Characteristics}
-Power and signal specifications.
-\section{Example Code}
-Sample scripts and configurations.
-\section{Revision History}
-Track changes and updates to the document.
+\input{sections/9_appendices.tex}
 
 \end{document}

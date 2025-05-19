@@ -1,16 +1,129 @@
+% 3. Functional Modules
 \section{Functional Modules}
 
-\subsection{Oscillators and Tone Generators}
-Description of tone generation mechanisms.
+\subsection{Overview}
+The HUPUF2X8A APU is designed around a modular architecture, with each functional block responsible for a specific aspect of audio processing. The main functional modules are:
+\begin{itemize}
+    \item Register Access Module
+    \item Segmented Channels (6)
+    \item Sampled Channels (2)
+    \item Sampling \& Mixing Circuit
+    \item DAC Output Stage
+\end{itemize}
 
-\subsection{Segmented Channels}
-Detailed description and configuration.
+Each module is configured through a set of registers. The complete list of registers, along with detailed descriptions and usage, is provided in the \textbf{Register Map and Configuration} section.
 
-\subsection{Sampled Channels}
-Handling of sampled audio data.
+% Placeholder for Functional Modules Block Diagram
+\begin{figure}[h!]
+    \centering
+    % Placeholder for a block diagram of functional modules
+    \caption{Block Diagram of Functional Modules}
+\end{figure}
 
-\subsection{Modulation Techniques}
-Types: Amplitude, Frequency, Noise, Delta.
+\subsection{Register Access Module}
+The Register Access Module acts as the interface between external control signals and the APU’s internal configuration registers. It centralizes all read/write operations and manages data distribution to the appropriate submodules.
 
-\subsection{Mixer and Output}
-Mixing process, stereo configuration, volume control.
+\paragraph{Role:}
+\begin{itemize}
+    \item Manages register read/write operations via dedicated I/O pins.
+    \item Handles address decoding and data transfer.
+    \item Interfaces with both global and per-channel registers.
+\end{itemize}
+
+\paragraph{Components:}
+\begin{itemize}
+    \item \textbf{Demultiplexer:} Routes data to the correct internal register based on the address (RA0-RA3).
+    \item \textbf{Read/Write Control:} Uses RRW (Read/Write) and RAE (Access Enable) to manage data flow.
+    \item \textbf{Data Bus Interface:} Handles data transfer (D0-D7) between external signals and internal registers.
+    \item \textbf{Global Register Storage:} Stores configuration and status information shared across the APU.
+    \item \textbf{Channel Register Access:} Manages access to per-channel configuration registers.
+\end{itemize}
+
+% Placeholder for Register Access Module Diagram
+\begin{figure}[h!]
+    \centering
+    % Placeholder for a diagram of the Register Access Module
+    \caption{Register Access Module Structure}
+\end{figure}
+
+\paragraph{Usage:}
+The Register Access Module handles all I/O-based control of the APU. It decodes the register address and either writes or reads data through the external pins. Detailed information about the available registers is provided in the \textbf{Register Map and Configuration} section.
+
+\subsection{Segmented Channels (6)}
+Segmented channels are designed for generating complex waveforms by chaining multiple amplitude segments. Each segment represents a unidirectional amplitude change (rising, falling, or steady), implemented as a series of discrete steps.
+
+\paragraph{Features:}
+\begin{itemize}
+    \item Up to 16 segments per channel.
+    \item Configurable step length, height, and count.
+    \item Flexible waveform generation, including pulse, triangle, and sawtooth patterns.
+    \item Independent configuration per channel.
+\end{itemize}
+
+\paragraph{Channel Configuration:}
+Segmented channels use a series of configuration registers to control waveform properties. Detailed configuration options for segmented channels can be found in the \textbf{Register Map and Configuration} section.
+
+\subsection{Sampled Channels (2)}
+Sampled channels are designed to play back raw audio data from a buffer. These channels are ideal for reproducing recorded audio or generating complex synthesized sounds.
+
+\paragraph{Features:}
+\begin{itemize}
+    \item Supports various modulation types: amplitude, delta, period, noise.
+    \item Configurable buffer size and offset for efficient data management.
+    \item High flexibility for real-time audio playback.
+\end{itemize}
+
+\paragraph{Channel Configuration:}
+Each sampled channel has dedicated configuration registers for buffer management and modulation settings. The details of these registers are presented in the \textbf{Register Map and Configuration} section.
+
+\subsection{Sampling \& Mixing Circuit}
+The Sampling \& Mixing Circuit combines the outputs of all active channels to produce a stereo audio signal. It operates at a fixed sampling rate derived from the master clock.
+
+\paragraph{Functionality:}
+\begin{itemize}
+    \item Samples the output from each active channel.
+    \item Applies volume scaling and stereo configuration.
+    \item Combines the signals into left and right audio streams.
+    \item Sends the mixed signal to the DAC for conversion.
+\end{itemize}
+
+% Placeholder for Mixing Circuit Diagram
+\begin{figure}[h!]
+    \centering
+    % Placeholder for a diagram of the Sampling & Mixing Circuit
+    \caption{Sampling and Mixing Circuit}
+\end{figure}
+
+\paragraph{Sampling Process:}
+The circuit periodically samples each active channel, applies the configured volume and stereo balance, and mixes the results into a composite audio signal.
+
+\subsection{DAC Output Stage}
+The DAC output stage converts the mixed digital audio signals into analog waveforms, which are then output on the L and R pins.
+
+\paragraph{Output Characteristics:}
+\begin{itemize}
+    \item Dual 8-bit resolution (Left and Right channels).
+    \item Output voltage range: 0 to 3V.
+    \item Compatible with line-level audio inputs.
+\end{itemize}
+
+% Placeholder for DAC Output Characteristics Table
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\
+        \hline
+        Output Voltage Range & 0-3 & V \\
+        Output Impedance & 600 & Ω \\
+        Recommended Load & 10k & Ω \\
+        \hline
+    \end{tabular}
+    \caption{DAC Output Characteristics}
+\end{table}
+
+\paragraph{Signal Flow:}
+The final digital audio samples from the Sampling \& Mixing Circuit are converted to analog signals using two DACs, one for the left channel and one for the right channel. These signals are suitable for direct output to audio devices or amplifiers.
+
+\subsection{Integration and Usage}
+For detailed programming and usage instructions, including how to configure each channel and control the output, please refer to the \textbf{Integration and Usage} section.
