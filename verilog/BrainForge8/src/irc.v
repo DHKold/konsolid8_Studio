@@ -33,8 +33,6 @@ module IRC #(
     // INTERNAL TRIGGER
     input   wire                TRIG_DMAD,  // Trigger DMA Done Interrupt
     input   wire                TRIG_DMAE,  // Trigger DMA Error Interrupt
-    input   wire                TRIG_STOF,  // Trigger Stack Overflow Interrupt
-    input   wire                TRIG_STUF,  // Trigger Stack Underflow Interrupt
     input   wire                TRIG_RSTB,  // Trigger Reset
     input   wire                TRIG_IRQ0   // Trigger IRQ0
 );
@@ -114,14 +112,6 @@ module IRC #(
 
     always @(posedge TRIG_DMAE) begin
         handle_trigger(INT_ID_DMAE);
-    end
-
-    always @(posedge TRIG_STOF) begin
-        handle_trigger(INT_ID_STOF);
-    end
-
-    always @(posedge TRIG_STUF) begin
-        handle_trigger(INT_ID_STUF);
     end
 
     always @(posedge TRIG_RSTB) begin

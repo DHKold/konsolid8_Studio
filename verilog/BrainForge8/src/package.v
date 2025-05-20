@@ -46,60 +46,56 @@ module PACKAGE (
 
     wire            TRIG_DMAD;                  // Interrupts: Trigger DMA Done Interrupt
     wire            TRIG_DMAE;                  // Interrupts: Trigger DMA Error Interrupt
-    wire            TRIG_STOF;                  // Interrupts: Trigger Stack Overflow Interrupt
-    wire            TRIG_STUF;                  // Interrupts: Trigger Stack Underflow Interrupt
     wire            TRIG_RSTB;                  // Interrupts: Trigger Reset
     wire            TRIG_IRQ0;                  // Interrupts: Trigger IRQ0
 
     // Common wiring : DMA
-    wire            DMA_RUN;
-    wire [15:0]     DMA_SRC;
-    wire [15:0]     DMA_DST;
-    wire [7:0]      DMA_LEN;
-    wire [7:0]      DMA_INC;
+    wire            DMA_RUN;                    // DMA : Start a new transfer (or cancel with LEN=0)
+    wire [15:0]     DMA_SRC;                    // DMA : Source Address of the transfer
+    wire [15:0]     DMA_DST;                    // DMA : Destination Address of the transfer
+    wire [7:0]      DMA_LEN;                    // DMA : Length of the transfer (0=Cancel current transfer)
+    wire [7:0]      DMA_INC;                    // DMA : Increment for the destination (0=Static, 1=Sequential, >1=spaced)
 
-    wire [7:0]      DMA_BUS_D;
-    wire [15:0]     DMA_BUS_A;
-    wire            DMA_BUS_RW;
-    wire            DMA_BUS_BR;
-    wire            DMA_BUS_BA;
+    wire [7:0]      DMA_BUS_D;                  // DMA : BUS Data
+    wire [15:0]     DMA_BUS_A;                  // DMA : BUS Address
+    wire            DMA_BUS_RW;                 // DMA : BUS RW flag
+    wire            DMA_BUS_BR;                 // DMA : BUS Request
+    wire            DMA_BUS_BA;                 // DMA : BUS Ack
 
-    wire            DMA_BUSY;
+    wire            DMA_BUSY;                   // DMA : Busy Flag
 
     // Common wiring : Core
-    wire [7:0]      CORE_BUS_D;
-    wire [15:0]     CORE_BUS_A;
-    wire            CORE_BUS_RW;
-    wire            CORE_BUS_IF;
-    wire            CORE_BUS_BR;
-    wire            CORE_BUS_BA;
+    wire [7:0]      CORE_BUS_D;                 // Core : BUS Data
+    wire [15:0]     CORE_BUS_A;                 // Core : BUS Address
+    wire            CORE_BUS_RW;                // Core : BUS RW flag
+    wire            CORE_BUS_IF;                // Core : BUS IF flag
+    wire            CORE_BUS_BR;                // Core : BUS Request
+    wire            CORE_BUS_BA;                // Core : BUS Ack
 
-    // Interrupt Unit
+    // Interrupt : Handles interrupts external to the Core
     IRC irc (
         // TIMING
-        .CLK(CLK),  // Master Clock
+        .CLK(CLK),
 
         // INT
-        .RST(RST),  // Reset
-        .INT(INT),  // Interrupts Inputs
-        .IRQ(IRQ),  // Interrupt Request Output
+        .RST(RST),
+        .INT(INT),
+        .IRQ(IRQ),
 
         // EXPOSED
         .NEXT_ID(INT_ID),
         .NEXT_ON(INT_ON),
-        .RESET_ON(RSTB),
+        .RSTB(RSTB),
         .ACK(INT_ACK),
 
         // TRIGGER
         .TRIG_DMAD(TRIG_DMAD),
         .TRIG_DMAE(TRIG_DMAE),
-        .TRIG_STOF(TRIG_STOF),
-        .TRIG_STUF(TRIG_STUF),
         .TRIG_RSTB(TRIG_RSTB),
         .TRIG_IRQ0(TRIG_IRQ0)
     );
 
-    // DMA Unit
+    // DMA : Provide a background Data Transfer mechanism (lower BUS priority than the Core)
     DMA dma (
         // Control
         .RST(RSTB),
@@ -128,20 +124,20 @@ module PACKAGE (
         .BUSY(DMA_BUSY)
     );
 
-    // BUS Unit
+    // BUS Unit : Arbitrate between multiple drivers (If none needs the BUS, it is Z-impeded except for BR=0)
     BUS bus (
         // Control
         .RST(RSTB),
         .CLK(CLK),
 
         // BUS
-        .D(D),      // Data bus
-        .A(A),      // Address bus
-        .RW(RW),    // Read/Write control
-        .IF(IF),    // Fetch Instruction
-        .DT(DT),    // Data Transfer
-        .BR(BR),    // Bus Request
-        .BA(BA),    // Bus Available
+        .D(D),
+        .A(A),
+        .RW(RW),
+        .IF(IF),
+        .DT(DT),
+        .BR(BR),
+        .BA(BA),
 
         // Driver0 : Core
         .D0_DATA(CORE_BUS_D),
@@ -159,7 +155,7 @@ module PACKAGE (
         .D1_BA(DMA_BUS_BA)
     );
 
-    // Instruction Unit
+    // Core : Handles Instructions Fetch+Decode+Execute
     CORE core (
         // Control
         .RST(RSTB),
@@ -173,14 +169,14 @@ module PACKAGE (
         .BUS_RW(CORE_BUS_RW),
         .BUS_IF(CORE_BUS_IF),
         .BUS_BR(CORE_BUS_BR),
-        .BUS_BA(CORE_BUS_BA)
+        .BUS_BA(CORE_BUS_BA),
 
         // INT
         .INT_ID(INT_ID),
         .INT_ON(INT_ON),
         .INT_ACK(INT_ACK),
         .TRIG_RSTB(TRIG_RSTB),
-        .TRIG_IRQ0(TRIG_IRQ0)
+        .TRIG_IRQ0(TRIG_IRQ0),
 
         // DMA
         .DMA_RUN(DMA_RUN),
