@@ -21,8 +21,8 @@ module PACKAGE (
     inout   wire    [7:0]   D,      // Data bus
     inout   wire    [15:0]  A,      // Address bus
     inout   wire            RW,     // Read/Write control
-    inout   wire            FI,     // Fetch Instruction
-    inout   wire            DT,     // Data Transfer
+    inout   wire            IF,     // Instruction Fetch
+    inout   wire            DT,     // DMA Transfer
     output  wire            BR,     // Bus Request
     input   wire            BA,     // Bus Available
 
@@ -104,6 +104,8 @@ module PACKAGE (
         // Control
         .RST(RSTB),
         .CLK(CLK),
+        .HLD(HLD),
+        .STP(STP),
 
         .RUN(DMA_RUN),
         .SRC(DMA_SRC),
@@ -120,7 +122,7 @@ module PACKAGE (
 
         // INT
         .TRIG_DMAD(TRIG_DMAD),
-        .TRIG_DMAE(TRIG_DMAE)
+        .TRIG_DMAE(TRIG_DMAE),
 
         // STATE
         .BUSY(DMA_BUSY)
@@ -136,7 +138,7 @@ module PACKAGE (
         .D(D),      // Data bus
         .A(A),      // Address bus
         .RW(RW),    // Read/Write control
-        .FI(FI),    // Fetch Instruction
+        .IF(IF),    // Fetch Instruction
         .DT(DT),    // Data Transfer
         .BR(BR),    // Bus Request
         .BA(BA),    // Bus Available
@@ -146,26 +148,15 @@ module PACKAGE (
         .D0_ADDR(CORE_BUS_A),
         .D0_RW(CORE_BUS_RW),
         .D0_IF(CORE_BUS_IF),
-        .D0_RQ(CORE_BUS_BR),
-        .D0_OK(CORE_BUS_BA),
+        .D0_BR(CORE_BUS_BR),
+        .D0_BA(CORE_BUS_BA),
 
         // Driver1 : DMA
         .D1_DATA(DMA_BUS_D),
         .D1_ADDR(DMA_BUS_A),
         .D1_RW(DMA_BUS_RW),
-        .D1_RQ(DMA_BUS_BR),
-        .D1_OK(DMA_BUS_BA)
-    );
-
-    // Orchestration Unit
-    ORCHESTRATOR orchestrator (
-        // Control
-        .RST(RSTB),
-        .CLK(CLK),
-        
-        // Debug
-        .HLD(HLD),  // Hold
-        .STP(STP),  // Step
+        .D1_BR(DMA_BUS_BR),
+        .D1_BA(DMA_BUS_BA)
     );
 
     // Instruction Unit
@@ -173,21 +164,21 @@ module PACKAGE (
         // Control
         .RST(RSTB),
         .CLK(CLK),
+        .HLD(HLD),
+        .STP(STP),
 
         // BUS
-        .D(CORE_BUS_D),
-        .A(CORE_BUS_A),
-        .RW(CORE_BUS_RW),
-        .IF(CORE_BUS_IF),
-        .BR(CORE_BUS_BR),
-        .BA(CORE_BUS_BA)
+        .BUS_D(CORE_BUS_D),
+        .BUS_A(CORE_BUS_A),
+        .BUS_RW(CORE_BUS_RW),
+        .BUS_IF(CORE_BUS_IF),
+        .BUS_BR(CORE_BUS_BR),
+        .BUS_BA(CORE_BUS_BA)
 
         // INT
         .INT_ID(INT_ID),
         .INT_ON(INT_ON),
         .INT_ACK(INT_ACK),
-
-        // TRIGGER
         .TRIG_RSTB(TRIG_RSTB),
         .TRIG_IRQ0(TRIG_IRQ0)
 
@@ -197,8 +188,6 @@ module PACKAGE (
         .DMA_DST(DMA_DST),
         .DMA_LEN(DMA_LEN),
         .DMA_INC(DMA_INC),
-
-        // STATE
         .DMA_BUSY(DMA_BUSY)
     );
 
