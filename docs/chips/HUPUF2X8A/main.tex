@@ -1,0 +1,73 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{amsmath, amssymb, graphicx, tikz, longtable, hyperref}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{circuitikz}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{float}
+
+\title{HUPUF2X8A - APU (Audio Processing Unit) Technical Documentation}
+\author{Hutech - PulseForge Series}
+\date{\today}
+
+% Custom command for section title pages
+\definecolor{titlepagecolor}{RGB}{40,110,180}
+\definecolor{sectionpagecolor}{RGB}{0,65,120}
+
+\newcommand\sectionbreak{\clearpage}
+\titleformat{\section}[display]
+  {%
+    \pagecolor{sectionpagecolor}\thispagestyle{empty}%
+    \normalfont\Huge\bfseries\color{white}\filcenter\titlerule[2pt]\vskip5pt%
+  }
+  {\thesection}
+  {10pt}
+  {}
+  [{\vskip2pt\titlerule[2pt]\sectionbreak\nopagecolor}]
+
+\begin{document}
+
+% Title Page
+\include{sections/0_title-page.tex}
+\newpage
+
+\tableofcontents
+\newpage
+
+% 1. Introduction
+\input{sections/1_introduction.tex}
+\newpage
+
+% 2. Architecture Overview
+\input{sections/2_architecture-overview.tex}
+\newpage
+
+% 3. Functional Modules
+\input{sections/3_functional-modules.tex}
+\newpage
+
+% 4. Register Map and Configuration
+\input{sections/4_register-map.tex}
+\newpage
+
+% 5. Clock and Timing
+\input{sections/5_clock-and-timing.tex}
+\newpage
+
+% 6. Performance Characteristics
+\input{sections/6_performance-characteristics.tex}
+\newpage
+
+% 7. Integration and Usage
+\input{sections/7_integration-and-usage.tex}
+\newpage
+
+% 8. Debugging and Testing
+\input{sections/8_debugging-and-testing.tex}
+\newpage
+
+% 9. Appendices
+\input{sections/9_appendices.tex}
+
+\end{document}

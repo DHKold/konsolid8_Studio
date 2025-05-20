@@ -1,0 +1,291 @@
+% 4. Register Map and Configuration
+\section{Register Map and Configuration}
+
+\subsection{Overview}
+The HUPUF2X8A APU is controlled via a set of memory-mapped registers, accessed through the \textbf{Register Access Module}. These registers are divided into:
+\begin{itemize}
+    \item \textbf{Global Registers:} Control the overall behavior and status of the APU.
+    \item \textbf{Segmented Channel Registers:} Configure waveform generation for segmented channels.
+    \item \textbf{Sampled Channel Registers:} Manage audio playback and modulation for sampled channels.
+\end{itemize}
+
+Registers are accessed via the \textbf{RA0-RA3} (address) and \textbf{RD0-RD7} (data) pins, with \textbf{RRW} controlling read/write operations and \textbf{RAE} enabling the access.
+
+\paragraph{Bus Access Control:}
+The \textbf{RAE (Register Access Enable)} pin controls the access to the data bus:
+\begin{itemize}
+    \item When \textbf{RAE} is \emph{not asserted} (low):
+    \begin{itemize}
+        \item The \textbf{D0-D7} bus is set to \textbf{high impedance (Z)}, allowing other devices to use the data lines without interference.
+        \item The APU remains idle and will not respond to any read or write requests.
+    \end{itemize}
+    \item When \textbf{RAE} is \emph{asserted} (high):
+    \begin{itemize}
+        \item The APU takes control of the data bus, allowing read or write operations.
+        \item The data pins (D0-D7) become active, either driving the data for a read operation or accepting input for a write.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Global Registers}
+Global Registers store configuration and status information for the entire APU. These registers are fixed and are not affected by channel selection.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name} & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x0000 & Status          & R       & Current state of the APU, including error flags. \\
+        0x0001 & Active Channels & R/W     & Bitmask of active audio channels (8 bits). \\
+        0x0010 & Global Flags    & R/W     & Configuration flags (MixingAvg, etc.). \\
+        0x0011 & Mixing Volume A & R/W     & Volume for channels 0-3 (4x2b). \\
+        0x0100 & Mixing Volume B & R/W     & Volume for channels 4-7 (4x2b). \\
+        0x0101 & Mixing Stereo L & R/W     & Left channel enable (8x1b). \\
+        0x0110 & Mixing Stereo R & R/W     & Right channel enable (8x1b). \\
+        0x0111 & Select Exposed  & R/W     & Channel (4b) and Segment (4b) selection. \\
+        \hline
+    \end{tabular}
+    \caption{Global Registers}
+\end{table}
+
+\paragraph{Usage:}
+Global registers manage the overall audio configuration, including:
+\begin{itemize}
+    \item Enabling or disabling channels.
+    \item Setting global audio parameters.
+    \item Configuring stereo output (Left/Right).
+    \item Adjusting mixing volume for each channel.
+\end{itemize}
+
+\subsection{Segmented Channel Registers}
+Segmented channel registers control waveform generation by managing individual segments. These channels are capable of producing complex waveforms by chaining amplitude segments.
+Each channel has a specific quality level, affecting the number of segments and the precision of the waveform.
+
+All channels have the same properties, but the number of segments and the size of each segment property may vary based on the channel's quality.
+
+The common properties for all channels are stored in the two \textbf{Channel Conf} registers. The \textbf{Segment Conf} registers are used to configure the segments of the channel.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1000 & Channel Conf0   & R/W   & SegmentIdShift (4b) + Flags (4b). \\
+        0x1001 & Channel Conf1   & R/W   & SegmentActiveId (4b) + SegmentMaxId (4b). \\
+        \hline
+    \end{tabular}
+    \caption{Segmented Channel Registers (Common)}
+\end{table}
+
+\paragraph{High-Quality Channels (0 and 1):}
+The high-quality channels (0 and 1) can have up to 16 segments, with each segment having a maximum of 256 steps.
+The step precision is 9 bits (signed), allowing for precise control of the amplitude modulation (between -255 and +255 per step).
+The step length is 15 bits with a scale of +1, allowing for a maximum of $2^{15+1}$ cycles per step (1 to 65536).
+
+The total size of one segment configuration is 4 bytes.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1010 & Segment Conf0   & R/W   & StepSign (1b) + StepLength (7b hi). \\
+        0x1011 & Segment Conf1   & R/W   & StepLength (8b lo). \\
+        0x1100 & Segment Conf2   & R/W   & StepHeight (8b unsigned). \\
+        0x1101 & Segment Conf3   & R/W   & StepCount (8b). \\
+        \hline
+    \end{tabular}
+    \caption{Segmented Channel Registers (High Quality)}
+\end{table}
+
+\paragraph{Medium-Quality Channels (2 and 3):}
+Medium-quality channels (2 and 3) provide a balance between configurability and resource usage.
+Each channel supports up to 8 segments, with each segment having up to 128 steps.
+The step precision is 9 bits (signed), allowing for precise control of the amplitude modulation (between -255 and +255 per step).
+The step length is 8 bits with a scale of +4, allowing for a maximum of $2^{8+4}$ cycles per step (1 to 4096).
+
+The segment configuration is more compact, using 3 bytes per segment.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1010 & Segment Conf0   & R/W   & StepSign (1b) + StepCount (7b). \\
+        0x1011 & Segment Conf1   & R/W   & StepLength (8b). \\
+        0x1100 & Segment Conf2   & R/W   & StepHeight (8b unsigned). \\
+        0x1101 & Unused          & -     & Unused. \\
+        \hline
+    \end{tabular}
+    \caption{Segmented Channel Registers (Medium Quality)}
+\end{table}
+
+\paragraph{Low-Quality Channels (4 and 5):}
+Low-quality channels (4 and 5) are optimized for minimal configuration and fast updates, exposing their two segments per channel directly.
+The step precision is 5 bits (signed), multiplied by 17 allowing for approximate control of the amplitude modulation on the [-255,+255] range.
+The step length is 7 bits with a scale of +5, allowing for a maximum of $2^{8+5}$ cycles per step (1 to 4096).
+
+Each segment uses a compact 2-byte configuration, suitable for simple waveforms or rapid modulation.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1010 & Segment0 Conf0  & R/W   & \texttt{SLLLLLLL}: StepSign (1b), StepLength (7b). \\
+        0x1011 & Segment0 Conf1  & R/W   & \texttt{CCCCHHHH}: StepCount (4b), StepHeight (4b unsigned). \\
+        0x1100 & Segment1 Conf0  & R/W   & \texttt{SLLLLLLL}: StepSign (1b), StepLength (7b). \\
+        0x1101 & Segment1 Conf1  & R/W   & \texttt{CCCCHHHH}: StepCount (4b), StepHeight (4b unsigned). \\
+        \hline
+    \end{tabular}
+    \caption{Segmented Channel Registers (Low Quality)}
+\end{table}
+
+\subsection{Sampled Channel Registers}
+Sampled channels are designed to play back raw audio data from a buffer and support various modulation techniques.
+These channels are suitable for producing complex audio patterns and recorded sound playback.
+
+\subsubsection{Common Configuration Registers}
+The sampled channels share a set of common configuration registers, which define the basic properties of the channel and its buffer.
+
+Note that the buffers are always exposed (whatever channel/segment is selected) on ports 0x1110 and 0x1111, allowing for continuous streaming of audio data without needing to switch the selected channel.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1000 & Channel Conf0   & R/W   & Modulation Mode (3b) + Flags (5b). \\
+        0x1001 & Channel Conf1   & R/W   & BufferOffset (4b) + BufferMaxOffset (4b). \\
+        0x1010 & Channel Conf2   & R/W   & BufferShift (4b) + BufferWriteOffset (4b). \\
+        0x1011 & Mode Conf0      & R/W   & Mode-specific configuration. \\
+        0x1100 & Mode Conf1      & R/W   & Mode-specific configuration. \\
+        0x1101 & Mode Conf2      & R/W   & Mode-specific configuration. \\
+        0x1110 & Sample Buffer A & W     & Write to buffer of the first sampled channel. \\
+        0x1111 & Sample Buffer B & W     & Write to buffer of the second sampled channel. \\
+        \hline
+    \end{tabular}
+    \caption{Sampled Channel Registers}
+\end{table}
+
+\subsubsection{Sampling Modes}
+The sampled channels support multiple modulation types, allowing for diverse sound synthesis:
+\begin{itemize}
+    \item \textbf{AmpMode (Amplitude Modulation):} Directly sets amplitude from sample data.
+    \item \textbf{SignMode (Delta Sign Modulation):} Uses a single bit to toggle the sign of the delta.
+    \item \textbf{PeriodMode (Period Modulation):} Alternates between MinAmp and MaxAmp.
+    \item \textbf{NoiseMode (Random Noise Modulation):} Uses pseudo-random bits as the sample stream.
+    \item \textbf{DeltaMode (Delta Modulation):} The sample provides a signed delta to apply.
+\end{itemize}
+
+\paragraph{Buffer Writing:}
+The sampled channels use two dedicated registers to write audio data. These registers are always exposed, allowing continuous audio data streaming without switching the selected channel.
+
+\subsubsection{AmpMode (Amplitude Modulation)}
+\paragraph{Description:}
+In AmpMode, each sample directly sets the amplitude. This mode is ideal for playing back audio with precise amplitude control.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1011 & PeriodLength\_Lo & R/W & Duration of each sample in SamplingCycles (low byte). \\
+        0x1100 & PeriodLength\_Hi & R/W & Duration of each sample (high byte). \\
+        0x1101 & BitsPerSample    & R/W & Number of bits per sample (1-8). \\
+        \hline
+    \end{tabular}
+    \caption{AmpMode Registers}
+\end{table}
+
+\subsubsection{SignMode (Delta Sign Modulation)}
+\paragraph{Description:}
+In SignMode, each sample bit toggles the sign of a fixed amplitude delta. This mode produces waveforms with rapid sign changes.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1011 & PeriodLength\_Lo & R/W & Duration of each sample in SamplingCycles (low byte). \\
+        0x1100 & PeriodLength\_Hi & R/W & Duration of each sample (high byte). \\
+        0x1101 & DeltaAmplitude   & R/W & Amplitude change when sign toggles. \\
+        \hline
+    \end{tabular}
+    \caption{SignMode Registers}
+\end{table}
+
+\subsubsection{PeriodMode (Period Modulation)}
+\paragraph{Description:}
+Alternates between MinAmp and MaxAmp based on the sample value, creating a periodic waveform.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1011 & AAABBBB0         & R/W & A=BitsPerSample (3b), B=PeriodE2Scale (4b). \\
+        0x1100 & AmpMin           & R/W & Minimum amplitude during the period. \\
+        0x1101 & AmpMax           & R/W & Maximum amplitude during the period. \\
+        \hline
+    \end{tabular}
+    \caption{PeriodMode Registers}
+\end{table}
+
+\subsubsection{NoiseMode (Random Noise Modulation)}
+\paragraph{Description:}
+Uses a pseudo-random bit stream to generate noise. The configuration allows control over the noise frequency and characteristics.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1011 & PeriodLength    & R/W & Duration of each noise sample in SamplingCycles. \\
+        0x1100 & XorMask         & R/W & Mask for noise generation. \\
+        0x1101 & RandomConfig    & R/W & Configuration for pseudo-random number generation. \\
+        \hline
+    \end{tabular}
+    \caption{NoiseMode Registers}
+\end{table}
+
+\subsubsection{DeltaMode (Delta Modulation)}
+\paragraph{Description:}
+Uses the sample as a signed delta value, modifying the current amplitude directly.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|l|}
+        \hline
+        \textbf{Address} & \textbf{Name}        & \textbf{Access} & \textbf{Description} \\
+        \hline
+        0x1011 & PeriodLength\_Lo & R/W & Duration of each sample in SamplingCycles (low byte). \\
+        0x1100 & PeriodLength\_Hi & R/W & Duration of each sample (high byte). \\
+        0x1101 & BitsPerSample    & R/W & Number of bits per sample (1-8). \\
+        \hline
+    \end{tabular}
+    \caption{DeltaMode Registers}
+\end{table}
+
+\paragraph{Usage Note:}
+Choosing the appropriate mode is critical for achieving the desired audio effect. Switching between modes dynamically can result in unexpected audio artifacts, so it is recommended to stop playback when changing modes.
+
+\subsection{Register Access Protocol}
+To perform a read or write operation:
+\begin{enumerate}
+    \item Set the address on \textbf{RA0-RA3}.
+    \item Set \textbf{RRW} (1 for read, 0 for write).
+    \item Place data on \textbf{RD0-RD7} (for write).
+    \item Assert \textbf{RAE} (high) to enable access.
+    \item Pulse \textbf{CLK} to latch the data.
+    \item Deassert \textbf{RAE} (low) to release the bus.
+\end{enumerate}
