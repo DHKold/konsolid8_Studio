@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with the BrainForge8 project. If not, see <http://www.gnu.org/licenses/>.
  */
-module BrainForge8 (
+module PACKAGE (
     // BUS INTERFACE
     inout   wire    [7:0]   D,      // Data bus
     inout   wire    [15:0]  A,      // Address bus
@@ -34,10 +34,45 @@ module BrainForge8 (
     // FLOW INTERFACE
     input   wire            CLK,    // System clock
     input   wire            HLD,    // Hold
-    input   wire            STP,    // Step
+    input   wire            STP     // Step
 );
 
-    wire global_reset = irc.RESET_ON;
+    // Common wiring : Interrupts
+    wire            RSTB;                       // Global RSTB signal (hardware + software)
+
+    wire [3:0]      INT_ID;                     // Interrupts: active interrupt ID
+    wire            INT_ON;                     // Interrupts: active interrupt ongoing
+    wire            INT_ACK;                    // Interrupts: acknowledge (clear active interrupt)
+
+    wire            TRIG_DMAD;                  // Interrupts: Trigger DMA Done Interrupt
+    wire            TRIG_DMAE;                  // Interrupts: Trigger DMA Error Interrupt
+    wire            TRIG_STOF;                  // Interrupts: Trigger Stack Overflow Interrupt
+    wire            TRIG_STUF;                  // Interrupts: Trigger Stack Underflow Interrupt
+    wire            TRIG_RSTB;                  // Interrupts: Trigger Reset
+    wire            TRIG_IRQ0;                  // Interrupts: Trigger IRQ0
+
+    // Common wiring : DMA
+    wire            DMA_RUN;
+    wire [15:0]     DMA_SRC;
+    wire [15:0]     DMA_DST;
+    wire [7:0]      DMA_LEN;
+    wire [7:0]      DMA_INC;
+
+    wire [7:0]      DMA_BUS_D;
+    wire [15:0]     DMA_BUS_A;
+    wire            DMA_BUS_RW;
+    wire            DMA_BUS_BR;
+    wire            DMA_BUS_BA;
+
+    wire            DMA_BUSY;
+
+    // Common wiring : Core
+    wire [7:0]      CORE_BUS_D;
+    wire [15:0]     CORE_BUS_A;
+    wire            CORE_BUS_RW;
+    wire            CORE_BUS_IF;
+    wire            CORE_BUS_BR;
+    wire            CORE_BUS_BA;
 
     // Interrupt Unit
     IRC irc (
@@ -47,32 +82,56 @@ module BrainForge8 (
         // INT
         .RST(RST),  // Reset
         .INT(INT),  // Interrupts Inputs
-        .IRQ(IRQ)   // Interrupt Request Output
+        .IRQ(IRQ),  // Interrupt Request Output
 
         // EXPOSED
-        .NEXT_ID(core.INT_ID),
-        .NEXT_ON(core.INT_ON),
-        .RESET_ON(global_reset),
-        .ACK(core.INT_ACK),
+        .NEXT_ID(INT_ID),
+        .NEXT_ON(INT_ON),
+        .RESET_ON(RSTB),
+        .ACK(INT_ACK),
 
         // TRIGGER
-        .TRIG_ID(core.TRIG_INT_ID),
-        .TRIG_ON(core.TRIG_INT_ON),
-
-        .TRIG_DMA_DONE(dma.TRIG_INT_DONE)
-        .TRIG_DMA_FAIL(dma.TRIG_INT_FAIL)
-
-        .TRIG_STK_OVER(core.TRIG_INT_OVER)
-        .TRIG_STK_UNDR(core.TRIG_STK_UNDR)
+        .TRIG_DMAD(TRIG_DMAD),
+        .TRIG_DMAE(TRIG_DMAE),
+        .TRIG_STOF(TRIG_STOF),
+        .TRIG_STUF(TRIG_STUF),
+        .TRIG_RSTB(TRIG_RSTB),
+        .TRIG_IRQ0(TRIG_IRQ0)
     );
 
     // DMA Unit
     DMA dma (
-        // TODO
+        // Control
+        .RST(RSTB),
+        .CLK(CLK),
+
+        .RUN(DMA_RUN),
+        .SRC(DMA_SRC),
+        .DST(DMA_DST),
+        .LEN(DMA_LEN),
+        .INC(DMA_INC),
+
+        // BUS
+        .D(DMA_BUS_D),
+        .A(DMA_BUS_A),
+        .RW(DMA_BUS_RW),
+        .BR(DMA_BUS_BR),
+        .BA(DMA_BUS_BA),
+
+        // INT
+        .TRIG_DMAD(TRIG_DMAD),
+        .TRIG_DMAE(TRIG_DMAE)
+
+        // STATE
+        .BUSY(DMA_BUSY)
     );
 
     // BUS Unit
     BUS bus (
+        // Control
+        .RST(RSTB),
+        .CLK(CLK),
+
         // BUS
         .D(D),      // Data bus
         .A(A),      // Address bus
@@ -83,33 +142,64 @@ module BrainForge8 (
         .BA(BA),    // Bus Available
 
         // Driver0 : Core
-        .D0_DATA(core.BUS_DATA),
-        .D0_ADDR(core.BUS_ADDR),
-        .D0_RW(core.BUS_RW),
-        .D0_IF(core.BUS_IF),
-        .D0_RQ(core.BUS_RQ),
-        .D0_OK(core.BUS_OK),
+        .D0_DATA(CORE_BUS_D),
+        .D0_ADDR(CORE_BUS_A),
+        .D0_RW(CORE_BUS_RW),
+        .D0_IF(CORE_BUS_IF),
+        .D0_RQ(CORE_BUS_BR),
+        .D0_OK(CORE_BUS_BA),
 
         // Driver1 : DMA
-        .D1_DATA(dma.BUS_DATA),
-        .D1_ADDR(dma.BUS_ADDR),
-        .D1_RW(dma.BUS_RW),
-        .D1_RQ(dma.BUS_RQ),
-        .D1_OK(dma.BUS_OK)
+        .D1_DATA(DMA_BUS_D),
+        .D1_ADDR(DMA_BUS_A),
+        .D1_RW(DMA_BUS_RW),
+        .D1_RQ(DMA_BUS_BR),
+        .D1_OK(DMA_BUS_BA)
     );
 
     // Orchestration Unit
     ORCHESTRATOR orchestrator (
-        .clk(CLK),  // System clock
+        // Control
+        .RST(RSTB),
+        .CLK(CLK),
+        
+        // Debug
         .HLD(HLD),  // Hold
         .STP(STP),  // Step
-        .TRA(TRA)   // Trace
     );
 
     // Instruction Unit
     CORE core (
+        // Control
+        .RST(RSTB),
+        .CLK(CLK),
+
         // BUS
-        // ...
+        .D(CORE_BUS_D),
+        .A(CORE_BUS_A),
+        .RW(CORE_BUS_RW),
+        .IF(CORE_BUS_IF),
+        .BR(CORE_BUS_BR),
+        .BA(CORE_BUS_BA)
+
+        // INT
+        .INT_ID(INT_ID),
+        .INT_ON(INT_ON),
+        .INT_ACK(INT_ACK),
+
+        // TRIGGER
+        .TRIG_RSTB(TRIG_RSTB),
+        .TRIG_IRQ0(TRIG_IRQ0)
+
+        // DMA
+        .DMA_RUN(DMA_RUN),
+        .DMA_SRC(DMA_SRC),
+        .DMA_DST(DMA_DST),
+        .DMA_LEN(DMA_LEN),
+        .DMA_INC(DMA_INC),
+
+        // STATE
+        .DMA_BUSY(DMA_BUSY)
     );
 
 endmodule

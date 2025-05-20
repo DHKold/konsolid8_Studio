@@ -1,15 +1,13 @@
 // DMA.v
 // Simple DMA controller for BrainForge8 (task-based refactoring with reset and busy signal)
 
-module DMA #(
-    parameter TIMEOUT_MAX = 16'hFFFF
-)(
+module DMA (
     // Control
     input  wire        CLK,            // System clock
     input  wire        RST,            // Asynchronous active-low reset
-    input  wire        start,          // Start transfer
-    input  wire [15:0] SRC_ADDR,       // Source address
-    input  wire [15:0] DST_ADDR,       // Destination address
+    input  wire        RUN,            // RUN transfer
+    input  wire [15:0] SRC,            // Source address
+    input  wire [15:0] DST,            // Destination address
     input  wire [7:0]  LEN,            // Byte count
     input  wire [7:0]  INC,            // Destination increment value
 
@@ -21,9 +19,8 @@ module DMA #(
     input  wire        BA,             // Bus Acknowledge
 
     // Interrupt outputs
-    output reg         TRIG_DMA_DONE,  // Pulse when transfer completes
-    output reg         TRIG_DMA_FAIL,  // Pulse on failure (timeout)
-    output reg         TRIG_DMA_ERR,   // Pulse on erroneous start
+    output reg         TRIG_DMAD,      // Pulse when transfer completes
+    output reg         TRIG_DMAE,      // Pulse on erroneous RUN
 
     // Status
     output wire        BUSY           // High when transfer in progress
@@ -36,7 +33,6 @@ module DMA #(
         S_READ     = 3'd2,
         S_WRITE    = 3'd3,
         S_COMPLETE = 3'd4,
-        S_FAIL     = 3'd5,
         S_CLEANUP  = 3'd6;
 
     // Internal registers
@@ -44,7 +40,6 @@ module DMA #(
     reg [15:0] src, dst;
     reg [7:0]  len, inc;
     reg [7:0]  data_buf;
-    reg [15:0] timeout;
 
     // Derived signals
     assign BR   = (state == S_REQ_BUS || state == S_READ || state == S_WRITE);
@@ -55,15 +50,14 @@ module DMA #(
     // Tasks for each state (with descriptions)
     //------------------------------------------------------------------------------
 
-    // IDLE state: wait for 'start', load parameters, then request bus
+    // IDLE state: wait for 'RUN', load parameters, then request bus
     task task_idle; begin
         RW <= 1'b1;  // default to read
-        if (start) begin
-            src     <= SRC_ADDR;      // initialize source pointer
-            dst     <= DST_ADDR;      // initialize destination pointer
+        if (RUN) begin
+            src     <= SRC;           // initialize source pointer
+            dst     <= DST;           // initialize destination pointer
             len     <= LEN;           // byte count
             inc     <= INC;           // destination increment
-            timeout <= 16'd0;         // reset timeout counter
             state   <= S_REQ_BUS;     // request bus next
         end
     end endtask
@@ -71,7 +65,6 @@ module DMA #(
     // REQ_BUS state: hold BR, wait for BA, decide next state
     task task_req_bus; begin
         if (BA) begin
-            timeout <= 16'd0;
             if (len == 8'd0)
                 state <= S_COMPLETE;  // done immediately if zero length
             else begin
@@ -79,10 +72,6 @@ module DMA #(
                 A     <= src;         // source address
                 state <= S_READ;      // capture data next
             end
-        end else if (timeout == TIMEOUT_MAX) begin
-            state <= S_FAIL;         // bus request timed out
-        end else begin
-            timeout <= timeout + 1;  // increment timeout
         end
     end endtask
 
@@ -91,7 +80,6 @@ module DMA #(
         data_buf <= D;            // latch data from bus
         RW       <= 1'b0;         // prepare for write
         A        <= dst;          // destination address
-        timeout  <= 16'd0;        // reset timeout
         state    <= S_WRITE;      // perform write next
     end endtask
 
@@ -102,22 +90,12 @@ module DMA #(
             dst   <= dst + inc;    // advance destination pointer
             len   <= len - 1;      // decrement counter
             state <= S_REQ_BUS;    // request next byte
-        end else if (timeout == TIMEOUT_MAX) begin
-            state <= S_FAIL;       // write timed out
-        end else begin
-            timeout <= timeout + 1; // increment timeout
         end
     end endtask
 
     // COMPLETE state: signal done, then cleanup
     task task_complete; begin
-        TRIG_DMA_DONE <= 1'b1;    // pulse done interrupt
-        state <= S_CLEANUP;       // move to cleanup
-    end endtask
-
-    // FAIL state: signal failure, then cleanup
-    task task_fail; begin
-        TRIG_DMA_FAIL <= 1'b1;    // pulse fail interrupt
+        TRIG_DMAD <= 1'b1;        // pulse done interrupt
         state <= S_CLEANUP;       // move to cleanup
     end endtask
 
@@ -137,23 +115,26 @@ module DMA #(
     always @(posedge CLK or negedge RST) begin
         if (!RST) begin
             // asynchronous reset: go to idle state
-            TRIG_DMA_DONE  <= 1'b0;
-            TRIG_DMA_FAIL  <= 1'b0;
-            TRIG_DMA_ERR   <= 1'b0;
+            TRIG_DMAD  <= 1'b0;
+            TRIG_DMAE  <= 1'b0;
             task_cleanup();
         end else begin
-            // Clear pulses and detect erroneous start
-            TRIG_DMA_DONE <= 1'b0;
-            TRIG_DMA_FAIL <= 1'b0;
-            TRIG_DMA_ERR  <= (start && state != S_IDLE);
+            // Clear pulses and detect erroneous RUN
+            TRIG_DMAD <= 1'b0;
+            TRIG_DMAE <= (RUN && state != S_IDLE);
 
+            // Cancel
+            if (RUN && LEN == 0) begin
+                task_cleanup();
+            end
+
+            // State Machine
             case (state)
                 S_IDLE:     task_idle();
                 S_REQ_BUS:  task_req_bus();
                 S_READ:     task_read();
                 S_WRITE:    task_write();
                 S_COMPLETE: task_complete();
-                S_FAIL:     task_fail();
                 S_CLEANUP:  task_cleanup();
                 default:    task_cleanup();
             endcase
