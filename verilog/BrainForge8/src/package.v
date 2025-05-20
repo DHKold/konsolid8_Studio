@@ -27,7 +27,7 @@ module BrainForge8 (
     input   wire            BA,     // Bus Available
 
     // INTERRUPT INTERFACE
-    input   wire    [2:0]   INT,    // Interrupt request
+    input   wire    [3:0]   INT,    // Interrupt request
     input   wire            RST,    // Reset
     output  wire            IRQ,    // External request
 
@@ -35,28 +35,35 @@ module BrainForge8 (
     input   wire            CLK,    // System clock
     input   wire            HLD,    // Hold
     input   wire            STP,    // Step
-    input   wire            TRA     // Trace
 );
 
+    wire global_reset = irc.RESET_ON;
+
     // Interrupt Unit
-    IRC interruptController (
+    IRC irc (
         // TIMING
         .CLK(CLK),  // Master Clock
 
         // INT
         .RST(RST),  // Reset
-        .INT(INT),  // Interrupts (0-7, 0 is inactive, 7 is NMI)
-        .IRQ(IRQ)   // Interrupt Request
+        .INT(INT),  // Interrupts Inputs
+        .IRQ(IRQ)   // Interrupt Request Output
 
         // EXPOSED
-        .NEXT_ID(x),
-        .NEXT_ON(x),
-        .RESET_ON(x),
-        .ACK(x),
+        .NEXT_ID(core.INT_ID),
+        .NEXT_ON(core.INT_ON),
+        .RESET_ON(global_reset),
+        .ACK(core.INT_ACK),
 
         // TRIGGER
-        .TRIG_ID(x),
-        .TRIG_ON(x)
+        .TRIG_ID(core.TRIG_INT_ID),
+        .TRIG_ON(core.TRIG_INT_ON),
+
+        .TRIG_DMA_DONE(dma.TRIG_INT_DONE)
+        .TRIG_DMA_FAIL(dma.TRIG_INT_FAIL)
+
+        .TRIG_STK_OVER(core.TRIG_INT_OVER)
+        .TRIG_STK_UNDR(core.TRIG_STK_UNDR)
     );
 
     // DMA Unit
